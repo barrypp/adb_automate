@@ -37,6 +37,7 @@ def do_ads_1(count):
         wait_and_return_from_ads()
 
 
+
 while (True):
     out = run(['devices'])
     match = re.search(var.ip,out.decode())
