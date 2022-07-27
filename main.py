@@ -74,7 +74,7 @@ def search_ocr(ocr, str, p=0.9):
             return o
 
 
-def wait_and_check_ocr(str, p=0.9, box=None):
+def wait_and_match_ocr(str, p=0.9, box=None):
     while(True):
         im = get_screen(box)
         if (match_ocr(get_ocr(im), str, p)):
@@ -150,17 +150,15 @@ if __name__ == "__main__":
     try_switch_to_main_screen()
 
     # do_ads_1(6)
-    # do_ads_2(6)
+    do_ads_2(30)
 
     #im = get_screen((1280, 2685, 1370, 2770))
     #cv2.imwrite('template/icon.png', im)
     #plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
     #plt.show()
 
-    im = get_screen()
-    plot_ocr(im, get_ocr(im))
-
-    #img = cv2.imread
+    #im = get_screen()
+    #plot_ocr(im, get_ocr(im))
 
     run(pointer_location + ' 0')
     print('ok')
