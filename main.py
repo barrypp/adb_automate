@@ -20,10 +20,17 @@ screencap = 'exec-out screencap'
 wm_size = 'shell wm size'
 
 keycode_back = 4
+t_start = time.perf_counter()
 
 
 def run(para):
-    return subprocess.check_output(var.adb_path + ' ' + para, shell=True)
+    out = subprocess.run(var.adb_path + ' ' + para,
+                         shell=True, capture_output=True)
+    if (out.stderr):
+        if (out.stderr != b'Warning: Activity not started, intent has been delivered to currently running top-most instance.\r\n'):
+            print(out.args, f'| returncode: {out.returncode}',
+                  f' | stdout len: {len(out.stdout)} |', out.stderr)
+    return out.stdout
 
 
 def tap(x, y, delay=0.5):
@@ -107,9 +114,10 @@ def plot_ocr(im, text):
 
 
 def do_ads_1(count):
-    tap(840, 2900)
     while(count):
         count -= 1
+        print(f'{time.perf_counter()-t_start:0.3f}s do_ads_1 count: {count}')
+        tap(840, 2900)
         tap(770, 2500)
         wait_ads_and_back()
         try_switch_to_main_screen()
@@ -118,6 +126,7 @@ def do_ads_1(count):
 def do_ads_2(count):
     while(count):
         count -= 1
+        print(f'{time.perf_counter()-t_start:0.3f}s do_ads_2 count: {count}')
         tap(1300, 700)
         tap(1000, 1700)
         if (get_current_activity() == var.game):
@@ -127,13 +136,14 @@ def do_ads_2(count):
 
 
 def wait_ads_and_back():
+    time.sleep(2)
     if (get_current_activity() == var.game):
         return
     time.sleep(40)
     keyevent(keycode_back)
-    if (get_current_activity() == var.game):
+    if (get_current_activity() != var.game):
         tap(1384, 61)
-    if (get_current_activity() == var.game):
+    if (get_current_activity() != var.game):
         run(am_start + ' ' + var.game)
 
 
@@ -160,8 +170,8 @@ if __name__ == "__main__":
     run(pointer_location + ' 1')
     try_switch_to_main_screen()
 
-    # do_ads_1(2)
-    # do_ads_2(30)
+    #do_ads_1(5)
+    do_ads_2(30)
 
     #im = get_screen((1280, 2685, 1370, 2770))
     #cv2.imwrite('template/icon.png', im)
