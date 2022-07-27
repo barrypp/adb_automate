@@ -1,5 +1,4 @@
 
-import io
 import re
 import subprocess
 import time
@@ -120,7 +119,7 @@ def do_ads_2(count):
 def wait_and_return_from_ads():
     time.sleep(10)
     while (get_current_activity() != var.game):
-        time.sleep(2)
+        time.sleep(5)
         run(input_keyevent+' 4')
     time.sleep(1)
 
@@ -149,8 +148,8 @@ if __name__ == "__main__":
 
     try_switch_to_main_screen()
 
-    # do_ads_1(6)
-    do_ads_2(30)
+    do_ads_1(2)
+    #do_ads_2(30)
 
     #im = get_screen((1280, 2685, 1370, 2770))
     #cv2.imwrite('template/icon.png', im)
