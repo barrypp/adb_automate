@@ -33,7 +33,12 @@ def run(para):
     return out.stdout
 
 
+def get_logt():
+    return f'{time.perf_counter()-t_start:0.3f}s'
+
+
 def tap(x, y, delay=0.5):
+    #print(f'tap {x},{y} {delay}s')
     run(input_tap+f' {x} {y}')
     time.sleep(delay)
 
@@ -116,7 +121,7 @@ def plot_ocr(im, text):
 def do_ads_1(count):
     while(count):
         count -= 1
-        print(f'{time.perf_counter()-t_start:0.3f}s do_ads_1 count: {count}')
+        print(get_logt()+f' do_ads_1 count: {count}')
         tap(840, 2900)
         tap(770, 2500)
         wait_ads_and_back()
@@ -126,13 +131,30 @@ def do_ads_1(count):
 def do_ads_2(count):
     while(count):
         count -= 1
-        print(f'{time.perf_counter()-t_start:0.3f}s do_ads_2 count: {count}')
+        print(get_logt()+f' do_ads_2 count: {count}')
         tap(1300, 700)
         tap(1000, 1700)
         if (get_current_activity() == var.game):
             tap(1000, 1900)
         wait_ads_and_back()
         try_switch_to_main_screen()
+
+
+def do_ads_3(count):
+    im_temp = cv2.imread('template/ads_vip.png')
+    dy0, dx0, _ = im_temp.shape
+    x1, y1, x2, y2 = (1178, 573, 1440, 1347)
+    while(count):
+        count -= 1
+        print(get_logt()+f' do_ads_2 count: {count}')
+        _, m, _, (dx, dy) = search_icon(get_screen((x1, y1, x2, y2)), im_temp)
+        if (m >= 0.9):
+            print(get_logt()+' do_ads_2 detected')
+            tap(x1+dx+dx0/2, y1+dy+dy0/2)
+            tap(1000, 1900)
+            wait_ads_and_back()
+            try_switch_to_main_screen()
+        time.sleep(30)
 
 
 def wait_ads_and_back():
@@ -170,10 +192,11 @@ if __name__ == "__main__":
     run(pointer_location + ' 1')
     try_switch_to_main_screen()
 
-    #do_ads_1(5)
-    do_ads_2(30)
+    # do_ads_1(5)
+    # do_ads_2(30)
+    do_ads_3(100)
 
-    #im = get_screen((1280, 2685, 1370, 2770))
+    #im = get_screen()
     #cv2.imwrite('template/icon.png', im)
     #plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
     # plt.show()
