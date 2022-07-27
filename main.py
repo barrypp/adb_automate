@@ -19,9 +19,21 @@ dumpsys_activity = 'shell dumpsys activity a'
 screencap = 'exec-out screencap'
 wm_size = 'shell wm size'
 
+keycode_back = 4
+
 
 def run(para):
     return subprocess.check_output(var.adb_path + ' ' + para, shell=True)
+
+
+def tap(x, y, delay=0.5):
+    run(input_tap+f' {x} {y}')
+    time.sleep(delay)
+
+
+def keyevent(code, delay=0.5):
+    run(input_keyevent + f' {code}')
+    time.sleep(delay)
 
 
 def get_screen_size():
@@ -95,41 +107,41 @@ def plot_ocr(im, text):
 
 
 def do_ads_1(count):
-    run(input_tap+' 840 2900')
+    tap(840, 2900)
     while(count):
         count -= 1
-        run(input_tap+' 770 2500')
-        wait_and_return_from_ads()
+        tap(770, 2500)
+        wait_ads_and_back()
+        try_switch_to_main_screen()
 
 
 def do_ads_2(count):
     while(count):
         count -= 1
-        run(input_tap+' 1300 700')
-        time.sleep(0.5)
-        run(input_tap+' 1000 1700')
-        run(input_tap+' 1000 1900')
-        time.sleep(0.5)
+        tap(1300, 700)
+        tap(1000, 1700)
         if (get_current_activity() == var.game):
-            try_switch_to_main_screen()
-        else:
-            wait_and_return_from_ads()
+            tap(1000, 1900)
+        wait_ads_and_back()
+        try_switch_to_main_screen()
 
 
-def wait_and_return_from_ads():
-    time.sleep(10)
-    while (get_current_activity() != var.game):
-        time.sleep(5)
-        run(input_keyevent+' 4')
-    time.sleep(1)
+def wait_ads_and_back():
+    if (get_current_activity() == var.game):
+        return
+    time.sleep(40)
+    keyevent(keycode_back)
+    if (get_current_activity() == var.game):
+        tap(1384, 61)
+    if (get_current_activity() == var.game):
+        run(am_start + ' ' + var.game)
 
 
 def try_switch_to_main_screen():
+    run(am_start + ' ' + var.game)
     im_temp = cv2.imread('template/main_screen_setting.png')
-    time.sleep(2)
     while(not match_icon(get_screen((1280, 2685, 1370, 2770)), im_temp)):
-        run(input_keyevent+' 4')
-        time.sleep(2)
+        keyevent(keycode_back)
 
 
 if __name__ == "__main__":
@@ -143,18 +155,18 @@ if __name__ == "__main__":
         print(out.decode())
         time.sleep(1)
 
-    out = run(am_start + ' ' + var.game)
+    run(am_start + ' ' + var.game)
+    time.sleep(5)
     run(pointer_location + ' 1')
-
     try_switch_to_main_screen()
 
-    do_ads_1(2)
-    #do_ads_2(30)
+    # do_ads_1(2)
+    # do_ads_2(30)
 
     #im = get_screen((1280, 2685, 1370, 2770))
     #cv2.imwrite('template/icon.png', im)
     #plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
-    #plt.show()
+    # plt.show()
 
     #im = get_screen()
     #plot_ocr(im, get_ocr(im))
