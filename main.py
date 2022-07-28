@@ -22,19 +22,24 @@ wm_size = 'shell wm size'
 keycode_back = 4
 t_start = time.perf_counter()
 
+ignore_warning = [b'Warning: Activity not started, intent has been delivered to currently running top-most instance.\r\n',
+                  b'Warning: Activity not started, its current task has been brought to the front\r\n']
+
 
 def run(para):
     out = subprocess.run(var.adb_path + ' ' + para,
                          shell=True, capture_output=True)
     if (out.stderr):
-        if (out.stderr != b'Warning: Activity not started, intent has been delivered to currently running top-most instance.\r\n'):
-            print(out.args, f'| returncode: {out.returncode}',
-                  f' | stdout len: {len(out.stdout)} |', out.stderr)
+        if (out.stderr not in ignore_warning):
+            print(out.args, f'| returncode: {out.returncode}', f' | stdout len: {len(out.stdout)} |', out.stderr)
     return out.stdout
 
 
 def get_logt():
     return f'{time.perf_counter()-t_start:0.3f}s'
+
+def in_game():
+    return get_current_activity() == var.game 
 
 
 def tap(x, y, delay=0.5):
@@ -134,7 +139,7 @@ def do_ads_2(count):
         print(get_logt()+f' do_ads_2 count: {count}')
         tap(1300, 700)
         tap(1000, 1700)
-        if (get_current_activity() == var.game):
+        if (in_game()):
             tap(1000, 1900)
         wait_ads_and_back()
         try_switch_to_main_screen()
@@ -159,13 +164,13 @@ def do_ads_3(count):
 
 def wait_ads_and_back():
     time.sleep(2)
-    if (get_current_activity() == var.game):
+    if (in_game()):
         return
     time.sleep(40)
     keyevent(keycode_back)
-    if (get_current_activity() != var.game):
+    if (not in_game()):
         tap(1384, 61)
-    if (get_current_activity() != var.game):
+    if (not in_game()):
         run(am_start + ' ' + var.game)
 
 
@@ -174,25 +179,27 @@ def try_switch_to_main_screen():
     im_temp = cv2.imread('template/main_screen_setting.png')
     while(not match_icon(get_screen((1280, 2685, 1370, 2770)), im_temp)):
         keyevent(keycode_back)
+        if (not in_game()):
+            run(am_start + ' ' + var.game)
+            time.sleep(5)
 
 
 if __name__ == "__main__":
 
     while (True):
-        out = run('devices')
-        match = re.search(var.ip, out.decode())
-        if (match):
+        out = run('devices').decode()
+        if (re.search('offline', out)):
+            run('kill-server')
+            continue
+        if (re.search(f'{var.ip}:{var.port}', out)):
             break
-        out = run(f'connect {var.ip}:{var.port}')
-        print(out.decode())
+        print(run(f'connect {var.ip}:{var.port}').decode())
         time.sleep(1)
 
-    run(am_start + ' ' + var.game)
-    time.sleep(5)
     run(pointer_location + ' 1')
     try_switch_to_main_screen()
 
-    # do_ads_1(5)
+    #do_ads_1(4)
     # do_ads_2(30)
     do_ads_3(100)
 
